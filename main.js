@@ -4,10 +4,12 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { XRControllerModelFactory } from 
                  'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import './style.css'
+import CANNON from 'cannon';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.z = 5;
+camera.position.z = 25;
+camera.position.y = 5;
 
 camera.lookAt(0,0,0);
 
@@ -32,14 +34,24 @@ controls.enableDamping = true
   dirlight.position.set(-1, 4, 1);
   scene.add(dirlight);
 
-//cube
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshStandardMaterial( { color: 0xd0d0d0 } );
-const cube = new THREE.Mesh( geometry, material );
-cube.position.set(0,3,-5);
-cube.castShadow = true;
-cube.receiveShadow = true;
-scene.add( cube );
+//Sphere
+const material = new THREE.MeshStandardMaterial({ color: 0xf00650 });
+const SphereGeometry = new THREE.SphereGeometry();
+const sphere = new THREE.Mesh(SphereGeometry, material);
+sphere.position.set(0, 3, -5);
+sphere.scale.set(1, 1, 1);
+sphere.castShadow = true;
+sphere.receiveShadow = true;
+scene.add(sphere);
+
+//Sphere2
+const Sphere2Geometry = new THREE.SphereGeometry();
+const sphere2 = new THREE.Mesh(Sphere2Geometry, material);
+sphere2.position.set(0.4, 6, -5);
+sphere2.scale.set(1, 1, 1);
+sphere2.castShadow = true;
+sphere2.receiveShadow = true;
+scene.add(sphere2);
 
 //plane
 const planeGeo = new THREE.PlaneGeometry(50, 50)
@@ -95,6 +107,42 @@ const controllerGrip2 = renderer.xr.getControllerGrip( 1 );
 controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
 scene.add( controllerGrip2 );
 
+//------------MON-----------------------//
+const world = new CANNON.World()
+world.gravity.set(0, -9.82, 0)
+
+const sphereShape = new CANNON.Sphere(1)
+const sphereBody = new CANNON.Body({
+    mass: 1,
+    position: new CANNON.Vec3(0, 3, -5),
+    shape: sphereShape
+})
+
+world.addBody(sphereBody)
+
+const sphere2Shape = new CANNON.Sphere(1)
+const sphere2Body = new CANNON.Body({
+    mass: 1,
+    position: new CANNON.Vec3(0.4, 6, -5),
+    shape: sphere2Shape
+})
+
+world.addBody(sphere2Body)
+
+
+const floorShape = new CANNON.Plane()
+const floorBody = new CANNON.Body({
+  mass: 0,
+  position: new CANNON.Vec3(0, -3, 0),
+  shape: floorShape
+})
+
+
+floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(- 1, 0, 0), Math.PI * 0.5)
+world.addBody(floorBody)
+
+
+
 //funció per definir la visualització en forma de raig o visor dels controladors:
 function buildController( data ) {
   let geometry, material;
@@ -132,9 +180,30 @@ function handleController( controller ) {
   }
 }
 
+
+//cridam sa funcio tick q mos renderiza
+const clock = new THREE.Clock()
+let oldElapsedTime = 0
+
+
+
+
+
+
 function tick() {
+  const elapsedTime = clock.getElapsedTime()
+  const deltaTime = elapsedTime - oldElapsedTime
+  oldElapsedTime = elapsedTime
+
   renderer.render(scene, camera)
   renderer.setAnimationLoop(tick);
-  
+
+  // Update physics
+  world.step(1 / 60, deltaTime, 3)
+  console.log(sphereBody.position.y)
+  sphere.position.copy(sphereBody.position)
+  sphere2.position.copy(sphere2Body.position)
+  plane.position.copy(floorBody.position)
+
 }
 tick();
