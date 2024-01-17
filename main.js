@@ -29,16 +29,17 @@ controls.enableDamping = true
 
 //------------------CREAM UN PUNT DE LLUM ENMITJ-------------------------
   //directional light
-  const dirlight = new THREE.DirectionalLight(0xffffff);
+  const dirlight = new THREE.SpotLight(0xffffff);
+  dirlight.intensity=1000;
   dirlight.castShadow= true
-  dirlight.position.set(-1, 4, 1);
+  dirlight.position.set(-1, 30, 1);
   scene.add(dirlight);
 
 //Sphere
 const material = new THREE.MeshStandardMaterial({ color: 0xf00650 });
 const SphereGeometry = new THREE.SphereGeometry();
 const sphere = new THREE.Mesh(SphereGeometry, material);
-sphere.position.set(0, 3, -5);
+sphere.position.set(0, 3, -10);
 sphere.scale.set(1, 1, 1);
 sphere.castShadow = true;
 sphere.receiveShadow = true;
@@ -47,11 +48,20 @@ scene.add(sphere);
 //Sphere2
 const Sphere2Geometry = new THREE.SphereGeometry();
 const sphere2 = new THREE.Mesh(Sphere2Geometry, material);
-sphere2.position.set(0.4, 6, -5);
+sphere2.position.set(0.4, 6, -10);
 sphere2.scale.set(1, 1, 1);
 sphere2.castShadow = true;
 sphere2.receiveShadow = true;
 scene.add(sphere2);
+
+//Sphere3
+const Sphere3Geometry = new THREE.SphereGeometry();
+const sphere3 = new THREE.Mesh(Sphere3Geometry, material);
+sphere3.position.set(10, 35, -10);
+sphere3.scale.set(3, 3, 3);
+sphere3.castShadow = true;
+sphere3.receiveShadow = true;
+scene.add(sphere3);
 
 //plane
 const planeGeo = new THREE.PlaneGeometry(50, 50)
@@ -114,7 +124,7 @@ world.gravity.set(0, -9.82, 0)
 const sphereShape = new CANNON.Sphere(1)
 const sphereBody = new CANNON.Body({
     mass: 1,
-    position: new CANNON.Vec3(0, 3, -5),
+    position: new CANNON.Vec3(0, 3, -10),
     shape: sphereShape
 })
 
@@ -123,11 +133,21 @@ world.addBody(sphereBody)
 const sphere2Shape = new CANNON.Sphere(1)
 const sphere2Body = new CANNON.Body({
     mass: 1,
-    position: new CANNON.Vec3(0.4, 6, -5),
+    position: new CANNON.Vec3(0.4, 6, -10),
     shape: sphere2Shape
 })
 
 world.addBody(sphere2Body)
+
+
+const sphere3Shape = new CANNON.Sphere(3)
+const sphere3Body = new CANNON.Body({
+    mass: 10,
+    position: new CANNON.Vec3(10, 35, -10),
+    shape: sphere3Shape
+})
+
+world.addBody(sphere3Body)
 
 
 const floorShape = new CANNON.Plane()
@@ -203,6 +223,7 @@ function tick() {
   console.log(sphereBody.position.y)
   sphere.position.copy(sphereBody.position)
   sphere2.position.copy(sphere2Body.position)
+  sphere3.position.copy(sphere3Body.position)
   plane.position.copy(floorBody.position)
 
 }
